@@ -2,8 +2,14 @@
 
 import 'package:calculator_app/my_button.dart';
 import 'package:flutter/material.dart';
+import 'package:math_expressions/math_expressions.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   List<String> buttons = [
     'C',
     'DEL',
@@ -24,8 +30,11 @@ class HomePage extends StatelessWidget {
     '0',
     '.',
     'ANS',
-    '=',
+    '='
   ];
+
+  var userQuestion = '';
+  var userAnswer = '';
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +43,30 @@ class HomePage extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: Container(),
+            child: Container(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  SizedBox(height: 50),
+                  Container(
+                    padding: EdgeInsets.all(8.0),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      userQuestion,
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(8.0),
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      userAnswer,
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           Expanded(
             flex: 2,
@@ -44,20 +76,53 @@ class HomePage extends StatelessWidget {
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 4),
                   itemBuilder: (context, int index) {
+                    //clear button
                     if (index == 0) {
                       return MyButton(
+                        buttonTapped: () {
+                          setState(() {
+                            userQuestion = '';
+                          });
+                        },
                         textColor: Colors.white,
                         color: Colors.green,
                         buttonText: buttons[index],
                       );
-                    } else if (index == 1) {
+                    }
+                    //delete button
+                    else if (index == 1) {
                       return MyButton(
+                        buttonTapped: () {
+                          setState(() {
+                            userQuestion = userQuestion.substring(
+                                0, userQuestion.length - 1);
+                          });
+                        },
                         textColor: Colors.white,
                         color: Colors.red,
                         buttonText: buttons[index],
                       );
                     }
+                    // equal button
+                    else if (index == buttons.length - 1) {
+                      return MyButton(
+                        buttonTapped: () {
+                          setState(() {
+                            equalPress();
+                          });
+                        },
+                        textColor: Colors.white,
+                        color: Colors.deepPurple,
+                        buttonText: buttons[index],
+                      );
+                    }
+                    //others button
                     return MyButton(
+                      buttonTapped: () {
+                        setState(() {
+                          userQuestion += buttons[index];
+                        });
+                      },
                       color: isOperator(buttons[index])
                           ? Colors.deepPurple
                           : Colors.deepPurple[50],
@@ -79,5 +144,15 @@ class HomePage extends StatelessWidget {
       return true;
     }
     return false;
+  }
+
+  void equalPress() {
+    String finalQuestion = userQuestion;
+    finalQuestion = finalQuestion.replaceAll('X', '*');
+    Parser p = Parser();
+    Expression exp = p.parse(finalQuestion);
+    ContextModel cm = ContextModel();
+    double eval = exp.evaluate(EvaluationType.REAL, cm);
+    userAnswer = eval.toString();
   }
 }
